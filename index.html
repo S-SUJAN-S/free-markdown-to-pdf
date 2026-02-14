@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal AI Content Bridge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400;600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link id="highlight-theme" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Refined Professional Palette */
+            --primary-bg: #0a0e14;
+            --secondary-bg: #12161e;
+            --tertiary-bg: #1a1f2b;
+            --accent: #7c9cbf;
+            --accent-bright: #a4c4e6;
+            --text-primary: #e6ebf1;
+            --text-secondary: #9ba5b4;
+            --text-muted: #6b7280;
+            --border: #252b38;
+            --border-light: #343b4a;
+            --success: #6dd4a8;
+            --warning: #f5c26b;
+            --danger: #ef6b6b;
+            
+            /* Typography Scale */
+            --font-display: 'Fraunces', serif;
+            --font-body: 'DM Sans', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            
+            /* Spacing Scale */
+            --space-xs: 0.25rem;
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+            --space-2xl: 3rem;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+            
+            /* Transitions */
+            --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Light Theme */
+        [data-theme="light"] {
+            --primary-bg: #ffffff;
+            --secondary-bg: #f8f9fb;
+            --tertiary-bg: #f0f2f5;
+            --accent: #4a72a8;
+            --accent-bright: #5b87c9;
+            --text-primary: #1a1f2b;
+            --text-secondary: #4b5563;
+            --text-muted: #9ca3af;
+            --border: #e5e7eb;
+            --border-light: #d1d5db;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        /* High Contrast Theme */
+        [data-theme="contrast"] {
+            --primary-bg: #000000;
+            --secondary-bg: #0a0a0a;
+            --tertiary-bg: #141414;
+            --accent: #00d9ff;
+            --accent-bright: #00ffff;
+            --text-primary: #ffffff;
+            --text-secondary: #e5e5e5;
+            --text-muted: #a3a3a3;
+            --border: #404040;
+            --border-light: #525252;
+            --success: #00ff88;
+            --warning: #ffcc00;
+            --danger: #ff3366;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            overflow: hidden;
+            transition: background-color var(--transition-base), color var(--transition-base);
+        }
+
+        #root {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .app-header {
+            height: 60px;
+            background: var(--secondary-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--space-lg);
+            box-shadow: var(--shadow-sm);
+            z-index: 100;
+            animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .app-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .app-logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-bright) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            font-size: 16px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .app-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: var(--space-sm) var(--space-md);
+            border: none;
+            border-radius: 6px;
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-sm);
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-bright);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--tertiary-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+            border-color: var(--border-light);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .btn-ghost:hover {
+            background: var(--tertiary-bg);
+            color: var(--text-primary);
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+
+        /* Main Container */
+        .app-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Editor Pane */
+        .editor-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--secondary-bg);
+            border-right: 1px solid var(--border);
+            transition: flex var(--transition-base);
+            animation: fadeInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s backwards;
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .editor-header {
+            padding: var(--space-md) var(--space-lg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--tertiary-bg);
+        }
+
+        .editor-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .editor-toolbar {
+            display: flex;
+            gap: var(--space-xs);
+        }
+
+        .editor-content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .editor-textarea {
+            width: 100%;
+            height: 100%;
+            padding: var(--space-xl);
+            background: var(--secondary-bg);
+            color: var(--text-primary);
+            border: none;
+            outline: none;
+            font-family: var(--font-mono);
+            font-size: 0.9375rem;
+            line-height: 1.7;
+            resize: none;
+            overflow-y: auto;
+            tab-size: 4;
+        }
+
+        .editor-textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Preview Pane */
+        .preview-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--primary-bg);
+            transition: flex var(--transition-base);
+            animation: fadeInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s backwards;
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .preview-header {
+            padding: var(--space-md) var(--space-lg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--secondary-bg);
+        }
+
+        .preview-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-2xl);
+            background: var(--primary-bg);
+        }
+
+        .preview-wrapper {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: var(--secondary-bg);
+            padding: 25mm 20mm;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* KaTeX Math Rendering */
+        .katex {
+            font-size: 1.1em;
+        }
+
+        .katex-display {
+            margin: 1.5em 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        /* Settings Panel */
+        .settings-panel {
+            position: fixed;
+            top: 60px;
+            right: 0;
+            width: 320px;
+            height: calc(100vh - 60px);
+            background: var(--secondary-bg);
+            border-left: 1px solid var(--border);
+            box-shadow: var(--shadow-xl);
+            transform: translateX(100%);
+            transition: transform var(--transition-slow);
+            z-index: 50;
+            overflow-y: auto;
+        }
+
+        .settings-panel.open {
+            transform: translateX(0);
+        }
+
+        .settings-header {
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: var(--secondary-bg);
+            z-index: 10;
+        }
+
+        .settings-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .settings-content {
+            padding: var(--space-lg);
+        }
+
+        .settings-section {
+            margin-bottom: var(--space-xl);
+        }
+
+        .settings-section-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--space-md);
+        }
+
+        .settings-group {
+            margin-bottom: var(--space-md);
+        }
+
+        .settings-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: var(--space-sm);
+        }
+
+        .settings-input,
+        .settings-select {
+            width: 100%;
+            padding: var(--space-sm) var(--space-md);
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            transition: all var(--transition-fast);
+        }
+
+        .settings-input:focus,
+        .settings-select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124, 156, 191, 0.1);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: var(--space-lg);
+            right: var(--space-lg);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .toast {
+            background: var(--tertiary-bg);
+            color: var(--text-primary);
+            padding: var(--space-md) var(--space-lg);
+            border-radius: 8px;
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            min-width: 300px;
+            animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.success {
+            border-left: 3px solid var(--success);
+        }
+
+        .toast.error {
+            border-left: 3px solid var(--danger);
+        }
+
+        .toast.warning {
+            border-left: 3px solid var(--warning);
+        }
+
+        /* Markdown Styles */
+        .markdown-preview {
+            font-family: var(--preview-font, var(--font-body));
+            font-size: var(--preview-font-size, 16px);
+            line-height: var(--preview-line-height, 1.7);
+            color: var(--text-primary);
+        }
+
+        .markdown-preview h1 {
+            font-family: var(--font-display);
+            font-size: 2.5em;
+            font-weight: 700;
+            margin: 1.5em 0 0.75em;
+            line-height: 1.2;
+            color: var(--text-primary);
+        }
+
+        .markdown-preview h1:first-child {
+            margin-top: 0;
+        }
+
+        .markdown-preview h2 {
+            font-family: var(--font-display);
+            font-size: 2em;
+            font-weight: 600;
+            margin: 1.25em 0 0.625em;
+            line-height: 1.3;
+            color: var(--text-primary);
+        }
+
+        .markdown-preview h3 {
+            font-size: 1.5em;
+            font-weight: 600;
+            margin: 1em 0 0.5em;
+            color: var(--text-primary);
+        }
+
+        .markdown-preview h4 {
+            font-size: 1.25em;
+            font-weight: 600;
+            margin: 0.875em 0 0.5em;
+            color: var(--text-primary);
+        }
+
+        .markdown-preview p {
+            margin: var(--preview-paragraph-spacing, 1em) 0;
+        }
+
+        .markdown-preview ul,
+        .markdown-preview ol {
+            margin: 1em 0;
+            padding-left: 2em;
+        }
+
+        .markdown-preview li {
+            margin: 0.5em 0;
+        }
+
+        .markdown-preview code {
+            font-family: var(--font-mono);
+            background: var(--tertiary-bg);
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 0.9em;
+            color: var(--accent-bright);
+        }
+
+        .markdown-preview pre {
+            background: var(--tertiary-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: var(--space-lg);
+            overflow-x: auto;
+            margin: 1.5em 0;
+        }
+
+        .markdown-preview pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+            font-size: 0.875em;
+        }
+
+        .markdown-preview blockquote {
+            border-left: 4px solid var(--accent);
+            padding-left: var(--space-lg);
+            margin: 1.5em 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .markdown-preview a {
+            color: var(--accent-bright);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color var(--transition-fast);
+        }
+
+        .markdown-preview a:hover {
+            border-bottom-color: var(--accent-bright);
+        }
+
+        .markdown-preview table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5em 0;
+        }
+
+        .markdown-preview th,
+        .markdown-preview td {
+            padding: var(--space-md);
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+
+        .markdown-preview th {
+            background: var(--tertiary-bg);
+            font-weight: 600;
+        }
+
+        .markdown-preview hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 2em 0;
+        }
+
+        .markdown-preview img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin: 1.5em 0;
+        }
+
+        /* Focus Mode */
+        .focus-mode .editor-pane {
+            flex: 0 0 100%;
+        }
+
+        .focus-mode .preview-pane {
+            flex: 0 0 0%;
+            overflow: hidden;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-header {
+                padding: 0 var(--space-md);
+            }
+
+            .app-title {
+                font-size: 1rem;
+            }
+
+            .editor-pane,
+            .preview-pane {
+                flex: 0 0 100%;
+            }
+
+            .preview-pane {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                transform: translateX(100%);
+            }
+
+            .preview-pane.mobile-visible {
+                transform: translateX(0);
+            }
+
+            .settings-panel {
+                width: 100%;
+            }
+
+            .preview-wrapper {
+                width: 100%;
+                padding: var(--space-lg);
+                min-height: auto;
+            }
+        }
+
+        /* Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--secondary-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* Loading State */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Print Styles for Perfect PDF Export */
+        @media print {
+            /* CRITICAL: Force display of preview content */
+            * {
+                visibility: hidden !important;
+            }
+
+            .preview-pane,
+            .preview-pane *,
+            .preview-content,
+            .preview-content *,
+            .preview-wrapper,
+            .preview-wrapper *,
+            #print-content,
+            #print-content *,
+            .markdown-preview,
+            .markdown-preview * {
+                visibility: visible !important;
+            }
+
+            /* Hide all UI elements */
+            .app-header,
+            .editor-pane,
+            .settings-panel,
+            .toast-container,
+            .loading-overlay,
+            .preview-header,
+            .editor-header {
+                display: none !important;
+            }
+
+            /* Reset body and root */
+            html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+                width: 100% !important;
+                height: 100% !important;
+            }
+
+            #root {
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+            }
+
+            .app-container {
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+                position: static !important;
+            }
+
+            /* Make preview pane visible and full width */
+            .preview-pane {
+                display: block !important;
+                position: static !important;
+                width: 100% !important;
+                height: auto !important;
+                flex: none !important;
+                border: none !important;
+                transform: none !important;
+            }
+
+            .preview-content {
+                padding: 0 !important;
+                overflow: visible !important;
+                display: block !important;
+                width: 100% !important;
+                height: auto !important;
+            }
+
+            .preview-wrapper {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 25mm 20mm !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                background: white !important;
+                min-height: 0 !important;
+                display: block !important;
+            }
+
+            /* Set A4 page size */
+            @page {
+                size: A4;
+                margin: 0;
+            }
+
+            /* Force white background for light theme in print */
+            .markdown-preview {
+                background: white !important;
+                color: black !important;
+                display: block !important;
+            }
+
+            .markdown-preview h1,
+            .markdown-preview h2,
+            .markdown-preview h3,
+            .markdown-preview h4,
+            .markdown-preview h5,
+            .markdown-preview h6,
+            .markdown-preview p,
+            .markdown-preview li,
+            .markdown-preview td,
+            .markdown-preview th {
+                color: black !important;
+            }
+
+            /* Better heading spacing for print */
+            .markdown-preview h1 {
+                margin-top: 1.5em !important;
+                margin-bottom: 0.5em !important;
+            }
+
+            .markdown-preview h2 {
+                margin-top: 1.25em !important;
+                margin-bottom: 0.5em !important;
+            }
+
+            .markdown-preview h3 {
+                margin-top: 1em !important;
+                margin-bottom: 0.5em !important;
+            }
+
+            .markdown-preview h4 {
+                margin-top: 0.875em !important;
+                margin-bottom: 0.5em !important;
+            }
+
+            /* First heading should not have top margin */
+            .markdown-preview h1:first-child,
+            .markdown-preview h2:first-child,
+            .markdown-preview h3:first-child {
+                margin-top: 0 !important;
+            }
+
+            /* Code blocks in print */
+            .markdown-preview pre {
+                background: #f5f5f5 !important;
+                border: 1px solid #ddd !important;
+                page-break-inside: avoid;
+                display: block !important;
+            }
+
+            .markdown-preview pre code {
+                color: #333 !important;
+            }
+
+            .markdown-preview code {
+                background: #f0f0f0 !important;
+                color: #d63384 !important;
+            }
+
+            /* Tables in print */
+            .markdown-preview table {
+                page-break-inside: avoid;
+                border-collapse: collapse !important;
+            }
+
+            .markdown-preview th {
+                background: #f5f5f5 !important;
+                color: black !important;
+                border: 1px solid #ddd !important;
+            }
+
+            .markdown-preview td {
+                border: 1px solid #ddd !important;
+                color: black !important;
+            }
+
+            /* Images */
+            .markdown-preview img {
+                max-width: 100% !important;
+                page-break-inside: avoid;
+            }
+
+            /* Blockquotes */
+            .markdown-preview blockquote {
+                border-left-color: #0066cc !important;
+                color: #333 !important;
+            }
+
+            /* Links */
+            .markdown-preview a {
+                color: #0066cc !important;
+                text-decoration: underline !important;
+            }
+
+            /* KaTeX math */
+            .katex {
+                font-size: 1.1em !important;
+                color: black !important;
+            }
+
+            .katex-display {
+                page-break-inside: avoid;
+            }
+
+            /* Avoid breaking these elements */
+            h1, h2, h3, h4, h5, h6 {
+                page-break-after: avoid;
+                page-break-inside: avoid;
+                break-after: avoid;
+                break-inside: avoid;
+            }
+
+            /* Ensure headings have content with them */
+            h1, h2, h3 {
+                page-break-before: auto;
+                break-before: auto;
+            }
+
+            /* Keep at least 2 lines with heading */
+            h1 + *, h2 + *, h3 + *, h4 + * {
+                page-break-before: avoid;
+                break-before: avoid;
+            }
+
+            p {
+                orphans: 3;
+                widows: 3;
+            }
+
+            /* Code blocks and blockquotes should not break */
+            .markdown-preview pre,
+            .markdown-preview blockquote,
+            .markdown-preview ul,
+            .markdown-preview ol {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            /* List items */
+            .markdown-preview li {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            /* Tables */
+            .markdown-preview table {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            .markdown-preview tr {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+
+            /* Syntax highlighting in print */
+            .hljs {
+                background: #f5f5f5 !important;
+            }
+
+            .hljs-comment,
+            .hljs-quote {
+                color: #006400 !important;
+            }
+
+            .hljs-keyword,
+            .hljs-selector-tag,
+            .hljs-literal {
+                color: #aa0d91 !important;
+            }
+
+            .hljs-name,
+            .hljs-variable {
+                color: #008 !important;
+            }
+
+            .hljs-string {
+                color: #c41a16 !important;
+            }
+
+            .hljs-number {
+                color: #1c00cf !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        // AI Fluff Patterns to Remove
+        const AI_FLUFF_PATTERNS = [
+            /^(Certainly|Sure|Of course|Absolutely|Here is|Here's|I'll|I will|Let me|I'd be happy to|I can help you with that)[^.!?]*[.!?]\s*/gim,
+            /^(I hope this helps|Feel free to|Please let me know|Is there anything else|Do you have any questions)[^.!?]*[.!?]\s*/gim,
+            /```\s*\n\s*```/g, // Empty code blocks
+            /^#+\s*$/gm, // Empty headers
+        ];
+
+        // Smart AI Paste Function
+        const cleanAIPaste = (text) => {
+            let cleaned = text;
+            
+            // Remove AI fluff
+            AI_FLUFF_PATTERNS.forEach(pattern => {
+                cleaned = cleaned.replace(pattern, '');
+            });
+            
+            // Fix broken code blocks
+            cleaned = cleaned.replace(/```(\w+)?\s*\n/g, (match, lang) => {
+                return '```' + (lang || '') + '\n';
+            });
+            
+            // Remove excessive newlines
+            cleaned = cleaned.replace(/\n{4,}/g, '\n\n\n');
+            
+            return cleaned.trim();
+        };
+
+        // Toast Component
+        const Toast = ({ message, type, onClose }) => {
+            useEffect(() => {
+                const timer = setTimeout(onClose, 3000);
+                return () => clearTimeout(timer);
+            }, [onClose]);
+
+            return (
+                <div className={`toast ${type}`}>
+                    <span>{message}</span>
+                </div>
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            const [markdown, setMarkdown] = useState('');
+            const [settings, setSettings] = useState({
+                theme: 'light',
+                fontFamily: 'sans-serif',
+                fontSize: 16,
+                lineHeight: 1.7,
+                paragraphSpacing: 1,
+                showHeaders: false,
+                headerText: '',
+                showFooters: false,
+                footerText: '',
+            });
+            const [settingsOpen, setSettingsOpen] = useState(false);
+            const [focusMode, setFocusMode] = useState(false);
+            const [previewVisible, setPreviewVisible] = useState(false);
+            const [toasts, setToasts] = useState([]);
+            const [loading, setLoading] = useState(false);
+            
+            const editorRef = useRef(null);
+            const previewRef = useRef(null);
+            const syncScrolling = useRef(true);
+
+            // Load from localStorage on mount
+            useEffect(() => {
+                const saved = localStorage.getItem('ai-bridge-content');
+                if (saved) {
+                    try {
+                        const data = JSON.parse(saved);
+                        setMarkdown(data.markdown || '');
+                        setSettings(prev => ({ ...prev, ...data.settings }));
+                    } catch (e) {
+                        console.error('Failed to load saved content:', e);
+                    }
+                }
+            }, []);
+
+            // Auto-save to localStorage
+            useEffect(() => {
+                const timer = setTimeout(() => {
+                    localStorage.setItem('ai-bridge-content', JSON.stringify({
+                        markdown,
+                        settings,
+                        timestamp: Date.now()
+                    }));
+                }, 1000);
+                
+                return () => clearTimeout(timer);
+            }, [markdown, settings]);
+
+            // Apply theme
+            useEffect(() => {
+                document.documentElement.setAttribute('data-theme', settings.theme);
+                
+                // Update syntax highlighting theme
+                const highlightTheme = document.getElementById('highlight-theme');
+                if (highlightTheme) {
+                    const themeMap = {
+                        'light': 'github',
+                        'dark': 'atom-one-dark',
+                        'contrast': 'monokai'
+                    };
+                    const themeName = themeMap[settings.theme] || 'github';
+                    highlightTheme.href = `https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/${themeName}.min.css`;
+                }
+            }, [settings.theme]);
+
+            // Show toast
+            const showToast = (message, type = 'success') => {
+                const id = Date.now();
+                setToasts(prev => [...prev, { id, message, type }]);
+            };
+
+            const removeToast = (id) => {
+                setToasts(prev => prev.filter(t => t.id !== id));
+            };
+
+            // Handle paste with AI cleaning
+            const handlePaste = (e) => {
+                const text = e.clipboardData.getData('text');
+                const cleaned = cleanAIPaste(text);
+                
+                if (cleaned !== text) {
+                    e.preventDefault();
+                    const textarea = editorRef.current;
+                    const start = textarea.selectionStart;
+                    const end = textarea.selectionEnd;
+                    const before = markdown.substring(0, start);
+                    const after = markdown.substring(end);
+                    
+                    setMarkdown(before + cleaned + after);
+                    showToast('AI fluff removed and formatting cleaned!', 'success');
+                    
+                    setTimeout(() => {
+                        textarea.selectionStart = textarea.selectionEnd = start + cleaned.length;
+                    }, 0);
+                }
+            };
+
+            // Synchronized scrolling
+            const handleEditorScroll = () => {
+                if (!syncScrolling.current || !editorRef.current || !previewRef.current) return;
+                
+                const editor = editorRef.current;
+                const preview = previewRef.current;
+                
+                const scrollPercentage = editor.scrollTop / (editor.scrollHeight - editor.clientHeight);
+                preview.scrollTop = scrollPercentage * (preview.scrollHeight - preview.clientHeight);
+            };
+
+            const handlePreviewScroll = () => {
+                if (!syncScrolling.current || !editorRef.current || !previewRef.current) return;
+                
+                const editor = editorRef.current;
+                const preview = previewRef.current;
+                
+                const scrollPercentage = preview.scrollTop / (preview.scrollHeight - preview.clientHeight);
+                editor.scrollTop = scrollPercentage * (editor.scrollHeight - editor.clientHeight);
+            };
+
+            // Copy functions
+            const copyRawMarkdown = () => {
+                navigator.clipboard.writeText(markdown);
+                showToast('Raw Markdown copied to clipboard!');
+            };
+
+            const copyCleanedText = () => {
+                const temp = document.createElement('div');
+                temp.innerHTML = marked.parse(markdown);
+                const text = temp.textContent || temp.innerText;
+                navigator.clipboard.writeText(text);
+                showToast('Cleaned text copied to clipboard!');
+            };
+
+            const copyHTML = () => {
+                const html = marked.parse(markdown);
+                navigator.clipboard.writeText(html);
+                showToast('HTML code copied to clipboard!');
+            };
+
+            // Export to PDF using browser print
+            const exportToPDF = () => {
+                if (!markdown.trim()) {
+                    showToast('Please add some content before exporting', 'warning');
+                    return;
+                }
+                
+                // Show helpful message
+                showToast('Opening print dialog... Select "Save as PDF" as your printer!', 'success');
+                
+                // Small delay to let toast appear
+                setTimeout(() => {
+                    window.print();
+                }, 500);
+            };
+
+
+            // Render markdown
+            const renderMarkdown = () => {
+                if (!markdown) return '<p style="color: var(--text-muted); font-style: italic;">Start typing or paste your AI-generated content...</p>';
+                
+                marked.setOptions({
+                    highlight: function(code, lang) {
+                        if (lang && hljs.getLanguage(lang)) {
+                            return hljs.highlight(code, { language: lang }).value;
+                        }
+                        return hljs.highlightAuto(code).value;
+                    },
+                    breaks: true,
+                    gfm: true
+                });
+                
+                let html = marked.parse(markdown);
+                
+                // Create a temporary div to process math
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                
+                // Render math with KaTeX
+                if (window.renderMathInElement) {
+                    renderMathInElement(temp, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\(', right: '\\)', display: false},
+                            {left: '\\[', right: '\\]', display: true}
+                        ],
+                        throwOnError: false,
+                        errorColor: '#cc0000',
+                        strict: false,
+                        trust: true
+                    });
+                }
+                
+                return temp.innerHTML;
+            };
+
+            // Get font family CSS variable
+            const getFontFamily = () => {
+                switch (settings.fontFamily) {
+                    case 'serif':
+                        return "'Fraunces', serif";
+                    case 'mono':
+                        return "'JetBrains Mono', monospace";
+                    default:
+                        return "'DM Sans', sans-serif";
+                }
+            };
+
+            return (
+                <>
+                    <div className={`app-header`}>
+                        <div className="app-logo">
+                            <div className="app-logo-icon">⚡</div>
+                            <h1 className="app-title">Universal AI Content Bridge</h1>
+                        </div>
+                        <div className="header-actions">
+                            <button 
+                                className="btn btn-ghost btn-icon" 
+                                onClick={() => setFocusMode(!focusMode)}
+                                title="Toggle Focus Mode"
+                            >
+                                {focusMode ? '⊞' : '⊟'}
+                            </button>
+                            <button 
+                                className="btn btn-ghost btn-icon"
+                                onClick={() => setSettingsOpen(!settingsOpen)}
+                                title="Settings"
+                            >
+                                ⚙
+                            </button>
+                            <button className="btn btn-primary" onClick={exportToPDF}>
+                                🖨️ Print / Save as PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className={`app-container ${focusMode ? 'focus-mode' : ''}`}>
+                        <div className="editor-pane">
+                            <div className="editor-header">
+                                <span className="editor-title">Markdown Editor</span>
+                                <div className="editor-toolbar">
+                                    <button 
+                                        className="btn btn-ghost btn-icon"
+                                        onClick={copyRawMarkdown}
+                                        title="Copy Raw Markdown"
+                                    >
+                                        📋
+                                    </button>
+                                    <button 
+                                        className="btn btn-ghost btn-icon"
+                                        onClick={copyCleanedText}
+                                        title="Copy Cleaned Text"
+                                    >
+                                        📝
+                                    </button>
+                                    <button 
+                                        className="btn btn-ghost btn-icon"
+                                        onClick={copyHTML}
+                                        title="Copy HTML"
+                                    >
+                                        🔗
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="editor-content">
+                                <textarea
+                                    ref={editorRef}
+                                    className="editor-textarea"
+                                    value={markdown}
+                                    onChange={(e) => setMarkdown(e.target.value)}
+                                    onPaste={handlePaste}
+                                    onScroll={handleEditorScroll}
+                                    placeholder="Paste your AI-generated content here... ✨
+
+Smart AI-Paste will automatically:
+• Remove AI fluff and pleasantries
+• Fix broken code block formatting
+• Clean up excessive whitespace
+
+Math equations are fully supported!
+Inline: $(\Delta f)_c$ or Display: $$E = mc^2$$
+
+Try pasting content from ChatGPT, Claude, Gemini, or any AI!"
+                                    spellCheck={false}
+                                />
+                            </div>
+                        </div>
+
+                        <div className={`preview-pane ${previewVisible ? 'mobile-visible' : ''}`}>
+                            <div className="preview-header">
+                                <span className="editor-title">Live Preview</span>
+                                <button 
+                                    className="btn btn-ghost btn-icon"
+                                    onClick={() => setPreviewVisible(false)}
+                                    style={{ display: window.innerWidth <= 768 ? 'flex' : 'none' }}
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            <div 
+                                className="preview-content"
+                                ref={previewRef}
+                                onScroll={handlePreviewScroll}
+                            >
+                                <div className="preview-wrapper" id="print-content">
+                                    <div 
+                                        className="markdown-preview"
+                                        style={{
+                                            '--preview-font': getFontFamily(),
+                                            '--preview-font-size': `${settings.fontSize}px`,
+                                            '--preview-line-height': settings.lineHeight,
+                                            '--preview-paragraph-spacing': `${settings.paragraphSpacing}em`
+                                        }}
+                                        dangerouslySetInnerHTML={{ __html: renderMarkdown() }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className={`settings-panel ${settingsOpen ? 'open' : ''}`}>
+                        <div className="settings-header">
+                            <h2 className="settings-title">Settings</h2>
+                            <button 
+                                className="btn btn-ghost btn-icon"
+                                onClick={() => setSettingsOpen(false)}
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="settings-content">
+                            <div className="settings-section">
+                                <h3 className="settings-section-title">Appearance</h3>
+                                
+                                <div className="settings-group">
+                                    <label className="settings-label">Theme</label>
+                                    <select 
+                                        className="settings-select"
+                                        value={settings.theme}
+                                        onChange={(e) => setSettings({...settings, theme: e.target.value})}
+                                    >
+                                        <option value="dark">Dark</option>
+                                        <option value="light">Light</option>
+                                        <option value="contrast">High Contrast</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="settings-section">
+                                <h3 className="settings-section-title">Typography</h3>
+                                
+                                <div className="settings-group">
+                                    <label className="settings-label">Font Family</label>
+                                    <select 
+                                        className="settings-select"
+                                        value={settings.fontFamily}
+                                        onChange={(e) => setSettings({...settings, fontFamily: e.target.value})}
+                                    >
+                                        <option value="serif">Serif (Academic)</option>
+                                        <option value="sans-serif">Sans-Serif (Modern)</option>
+                                        <option value="mono">Monospace (Technical)</option>
+                                    </select>
+                                </div>
+
+                                <div className="settings-group">
+                                    <label className="settings-label">Font Size: {settings.fontSize}px</label>
+                                    <input 
+                                        type="range"
+                                        className="settings-input"
+                                        min="10"
+                                        max="24"
+                                        value={settings.fontSize}
+                                        onChange={(e) => setSettings({...settings, fontSize: parseInt(e.target.value)})}
+                                    />
+                                </div>
+
+                                <div className="settings-group">
+                                    <label className="settings-label">Line Height: {settings.lineHeight}</label>
+                                    <input 
+                                        type="range"
+                                        className="settings-input"
+                                        min="1.2"
+                                        max="2.5"
+                                        step="0.1"
+                                        value={settings.lineHeight}
+                                        onChange={(e) => setSettings({...settings, lineHeight: parseFloat(e.target.value)})}
+                                    />
+                                </div>
+
+                                <div className="settings-group">
+                                    <label className="settings-label">Paragraph Spacing: {settings.paragraphSpacing}em</label>
+                                    <input 
+                                        type="range"
+                                        className="settings-input"
+                                        min="0.5"
+                                        max="2"
+                                        step="0.1"
+                                        value={settings.paragraphSpacing}
+                                        onChange={(e) => setSettings({...settings, paragraphSpacing: parseFloat(e.target.value)})}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="settings-section">
+                                <h3 className="settings-section-title">Document Options</h3>
+                                
+                                <div className="settings-group">
+                                    <label className="settings-label">
+                                        <input 
+                                            type="checkbox"
+                                            checked={settings.showHeaders}
+                                            onChange={(e) => setSettings({...settings, showHeaders: e.target.checked})}
+                                        />
+                                        {' '}Show Headers
+                                    </label>
+                                    {settings.showHeaders && (
+                                        <input 
+                                            type="text"
+                                            className="settings-input"
+                                            placeholder="Header text"
+                                            value={settings.headerText}
+                                            onChange={(e) => setSettings({...settings, headerText: e.target.value})}
+                                        />
+                                    )}
+                                </div>
+
+                                <div className="settings-group">
+                                    <label className="settings-label">
+                                        <input 
+                                            type="checkbox"
+                                            checked={settings.showFooters}
+                                            onChange={(e) => setSettings({...settings, showFooters: e.target.checked})}
+                                        />
+                                        {' '}Show Footers
+                                    </label>
+                                    {settings.showFooters && (
+                                        <input 
+                                            type="text"
+                                            className="settings-input"
+                                            placeholder="Footer text"
+                                            value={settings.footerText}
+                                            onChange={(e) => setSettings({...settings, footerText: e.target.value})}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="settings-section">
+                                <h3 className="settings-section-title">Export</h3>
+                                <div style={{
+                                    padding: 'var(--space-md)',
+                                    background: 'var(--tertiary-bg)',
+                                    borderRadius: '6px',
+                                    border: '1px solid var(--border)',
+                                    fontSize: '0.875rem',
+                                    lineHeight: '1.5',
+                                    color: 'var(--text-secondary)'
+                                }}>
+                                    <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '8px' }}>
+                                        💡 PDF Export Guide
+                                    </strong>
+                                    Click "Print / Save as PDF" to open your browser's print dialog. 
+                                    Choose "Save as PDF" or "Microsoft Print to PDF" as the destination. 
+                                    The PDF will look exactly like the preview! 📄✨
+                                </div>
+                            </div>
+
+                            <div className="settings-section">
+                                <h3 className="settings-section-title">Content</h3>
+                                
+                                <button 
+                                    className="btn btn-secondary"
+                                    style={{ width: '100%', marginBottom: '10px' }}
+                                    onClick={() => {
+                                        const sampleContent = `# Introduction to Quantum Computing
+
+Quantum computing is a revolutionary approach to computation that harnesses the phenomena of quantum mechanics.
+
+## Key Principles
+
+### Superposition
+
+Unlike classical bits that exist in either 0 or 1 state, quantum bits (qubits) can exist in a **superposition** of both states simultaneously. This is described mathematically as:
+
+$$|\\psi\\rangle = \\alpha|0\\rangle + \\beta|1\\rangle$$
+
+where $\\alpha$ and $\\beta$ are complex amplitudes satisfying $|\\alpha|^2 + |\\beta|^2 = 1$.
+
+### Entanglement
+
+Quantum entanglement creates correlations between qubits that have no classical analogue. The change frequency can be expressed as $(\Delta f)_c$, which demonstrates quantum interference patterns.
+
+## Applications
+
+1. **Cryptography**: Quantum key distribution
+2. **Optimization**: Solving complex optimization problems
+3. **Simulation**: Modeling quantum systems
+
+### Code Example
+
+\`\`\`python
+# Simple quantum circuit simulation
+def quantum_gate(qubit):
+    # Apply Hadamard gate
+    return (qubit[0] + qubit[1]) / sqrt(2)
+
+# Initialize qubit in |0⟩ state
+initial_state = [1, 0]
+result = quantum_gate(initial_state)
+\`\`\`
+
+## Challenges
+
+> The main challenges in quantum computing include maintaining quantum coherence, error correction, and scaling to large numbers of qubits.
+
+### Technical Obstacles
+
+- Decoherence time limits
+- Error rates in quantum gates
+- Scalability issues
+- Temperature requirements (*near absolute zero*)
+
+## Conclusion
+
+Quantum computing represents a paradigm shift in computation, with the potential to solve problems intractable for classical computers. The energy-time uncertainty relation $\Delta E \cdot \Delta t \\geq \\hbar/2$ governs fundamental limitations.`;
+                                        setMarkdown(sampleContent);
+                                        showToast('Sample content loaded!', 'success');
+                                    }}
+                                >
+                                    📝 Load Sample Content
+                                </button>
+                                
+                                <button 
+                                    className="btn btn-secondary"
+                                    style={{ width: '100%' }}
+                                    onClick={() => {
+                                        localStorage.removeItem('ai-bridge-content');
+                                        setMarkdown('');
+                                        showToast('Content cleared!', 'success');
+                                    }}
+                                >
+                                    🗑 Clear All Content
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="toast-container">
+                        {toasts.map(toast => (
+                            <Toast
+                                key={toast.id}
+                                message={toast.message}
+                                type={toast.type}
+                                onClose={() => removeToast(toast.id)}
+                            />
+                        ))}
+                    </div>
+
+                    {loading && (
+                        <div className="loading-overlay">
+                            <div className="loading-spinner"></div>
+                        </div>
+                    )}
+
+                    {window.innerWidth <= 768 && !focusMode && (
+                        <button
+                            className="btn btn-primary"
+                            style={{
+                                position: 'fixed',
+                                bottom: 'var(--space-lg)',
+                                right: 'var(--space-lg)',
+                                zIndex: 100,
+                                borderRadius: '50%',
+                                width: '56px',
+                                height: '56px',
+                                boxShadow: 'var(--shadow-xl)'
+                            }}
+                            onClick={() => setPreviewVisible(true)}
+                        >
+                            👁
+                        </button>
+                    )}
+                </>
+            );
+        };
+
+        // Render the app
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
